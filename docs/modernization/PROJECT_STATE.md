@@ -18,6 +18,7 @@ Status: RESEARCH PHASE. No code written. No decisions locked.
 - S1c: Build not possible in session (no OGRE libs, no network). Scanned source for OGRE-version-sensitive APIs (5d). Confirmed Option A = version bump, Option B = rewrite.
 - S1d: Owner on mobile; chose GitHub Actions CI via a fork; target = BeamNG realism (5e). GitHub not yet linked to Claude (blocker).
 - S1e: Fork created and linked; push works. Branch `modern/project-setup` pushed with this file at docs/modernization/PROJECT_STATE.md (the repo copy is now the canonical one). Read upstream AI_POLICY (5f). Fork already has CI (build-game.yml).
+- S1f: Owner says maintainers are OK with the effort (5g). Fork has 0 Actions runs so far.
 - Next: owner enables Actions on fork and confirms a baseline Linux build passes; inventory add-ons' OGRE 14 compatibility; start `modern/ogre14-port` branch; PBR spike plan.
 
 ---
@@ -236,6 +237,14 @@ Existing CI in the fork (inherited from upstream, .github/workflows/):
 - linux-native.yml: builds OGRE 1.11.6, MyGUI, Caelum, PagedGeometry, SocketW, AngelScript from source on master pushes.
 - No new workflow needed to start. Owner must enable Actions on the fork (GitHub shows an "I understand my workflows, enable them" button under the Actions tab).
 - No Windows CI job is present in build-game.yml; add later if Windows testing is needed.
+
+---
+
+## 5g. Maintainer feedback (Session 1f)
+
+- Owner reports the RoR maintainers are OK with the modernization effort (reported by owner, no link or quote recorded yet). TODO: owner to save where/when they said so (forum thread, Discord, or GitHub issue URL) so it can be cited in future PR descriptions.
+- Still required by AI_POLICY: owner reviews and tests each change, discloses AI help in PRs, and opens any upstream PR personally. Per-feature agreement (OGRE 14 bump, PBR material format) should be confirmed in writing before large PRs.
+- Baseline CI check (public GitHub API, Session 1f): 0 workflow runs on the fork, so Actions is not enabled yet or no run has been triggered. Next push after enabling should start `build-game.yml`.
 
 ---
 
