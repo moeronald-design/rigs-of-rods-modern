@@ -259,6 +259,22 @@ Existing CI in the fork (inherited from upstream, .github/workflows/):
 
 ---
 
+## 5i. Baseline CI (Session 1h)
+
+- Owner enabled Actions on the fork. Empty commit a2eba80 on `modern/project-setup` started workflow "Build game": https://github.com/moeronald-design/rigs-of-rods-modern/actions/runs/43964246421 (status at last check: in_progress).
+- Owner's screenshot of the fork home shows a "Build game failing" badge. That badge is hard-coded in README.md to the UPSTREAM repo (RigsOfRods/rigs-of-rods workflow), not the fork, so it reflects upstream master, not our fork. Could not verify upstream status (API outside session scope). If the fork's baseline build fails the same way, that explains it.
+- The `content` folder is a git submodule (RigsOfRods/content @ 34fefdd, 4 years old); CI checks out with submodules: true. Local clone does not have it unless `git submodule update --init`.
+- Checking run status without gh auth: `curl https://api.github.com/repos/moeronald-design/rigs-of-rods-modern/actions/runs` (public API works; job logs need auth, annotations may not).
+
+Result of run 43964246421 (checked 22:18 UTC):
+- CORRECTION: build-game.yml has TWO jobs: "Linux build on Ubuntu" and "Windows build" (earlier note 5f saying no Windows CI was wrong; I only read the first 80 lines).
+- Linux job FAILED at "Configure" (Conan). Cause from job log: `Version conflict: Conflict between libalsa/1.2.10 and libalsa/1.2.16.1 ... originates from openal-soft/1.24.3`. openal-soft requires libalsa [>=1.2 <1.3] -> resolves to 1.2.16.1, while another dependency (likely sdl/2.32.10 via ogre3d) pins 1.2.10. This is dependency drift in upstream's recipe, probably also why upstream's badge shows failing.
+- Windows job was still on "Configure" after ~27 min at last check (Conan building from source; slow, not failed).
+- Fix attempt 1: conanfile.py adds `self.requires("libalsa/1.2.10", override=True)` (1.2.10 is inside openal-soft's allowed range). Pushed to `modern/project-setup`; new run will show if it clears.
+- Log access: job logs ARE readable without auth: `curl -L https://api.github.com/repos/moeronald-design/rigs-of-rods-modern/actions/jobs/<job_id>/logs`; job ids via `.../actions/runs/<run_id>/jobs`.
+
+---
+
 ## 6. Open questions for the owner
 
 - What is "success"? Screenshots that look modern, or a fully new engine port?
