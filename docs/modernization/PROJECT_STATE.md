@@ -20,7 +20,9 @@ Status: RESEARCH PHASE. No code written. No decisions locked.
 - S1e: Fork created and linked; push works. Branch `modern/project-setup` pushed with this file at docs/modernization/PROJECT_STATE.md (the repo copy is now the canonical one). Read upstream AI_POLICY (5f). Fork already has CI (build-game.yml).
 - S1f: Owner says maintainers are OK with the effort (5g). Fork has 0 Actions runs so far.
 - S1g: Owner decided: standalone fork, not for sharing (5h).
-- Next: owner enables Actions on fork and confirms a baseline Linux build passes; inventory add-ons' OGRE 14 compatibility; start `modern/ogre14-port` branch; PBR spike plan.
+- S1h: Actions enabled. Linux baseline failed on libalsa Conan conflict; fixed in conanfile.py (override libalsa/1.2.10); Linux baseline now GREEN. Windows baseline pending (5i).
+- Next (revised): start `modern/ogre14-port` with a from-source OGRE 14.5.2 workflow; keep checking Windows baseline. Older line follows:
+- (old) owner enables Actions on fork and confirms a baseline Linux build passes; inventory add-ons' OGRE 14 compatibility; start `modern/ogre14-port` branch; PBR spike plan.
 
 ---
 
@@ -272,6 +274,16 @@ Result of run 43964246421 (checked 22:18 UTC):
 - Windows job was still on "Configure" after ~27 min at last check (Conan building from source; slow, not failed).
 - Fix attempt 1: conanfile.py adds `self.requires("libalsa/1.2.10", override=True)` (1.2.10 is inside openal-soft's allowed range). Pushed to `modern/project-setup`; new run will show if it clears.
 - Log access: job logs ARE readable without auth: `curl -L https://api.github.com/repos/moeronald-design/rigs-of-rods-modern/actions/jobs/<job_id>/logs`; job ids via `.../actions/runs/<run_id>/jobs`.
+
+Result of run 43968942511 (commit 9341352, checked 22:45 UTC):
+- Linux build: SUCCESS (libalsa override fixed Configure; full compile + artifact upload passed). BASELINE FOR LINUX IS GREEN.
+- Windows build: still in progress at last check (long Conan-from-source Configure). The older run's Windows job had already reached "Build", so Windows did not hit the libalsa conflict.
+- Doc-only pushes can use `[skip ci]` in the commit message to avoid re-running the long builds.
+
+Plan for OGRE 14 branch (`modern/ogre14-port`):
+- Could not confirm a Conan package for OGRE 14 (conan-center-index API and the AnotherFoxGuy Nexus remote are blocked from this session). Caelum/MyGUI recipes in the graph accept `ogre3d/[>=1 <15]` / `[~14]`, which hints that 14.x may exist on that remote, but this is UNVERIFIED.
+- Safer approach: a separate workflow (modelled on linux-native.yml) that builds OGRE 14.5.2 from source with CMake, then builds RoR against it. This gives a compile loop where the CI log shows every API break (logs are readable via curl). Dependencies to rebuild against 14: MyGUI, Caelum, PagedGeometry, SocketW, AngelScript.
+- Expected first errors: Cg program/plugin removal, renamed headers, resource system API, RTShader/Terrain/Overlay API changes, OIS vs SDL window/input setup.
 
 ---
 
