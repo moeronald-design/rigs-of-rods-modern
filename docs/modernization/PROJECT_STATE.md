@@ -19,6 +19,7 @@ Status: RESEARCH PHASE. No code written. No decisions locked.
 - S1d: Owner on mobile; chose GitHub Actions CI via a fork; target = BeamNG realism (5e). GitHub not yet linked to Claude (blocker).
 - S1e: Fork created and linked; push works. Branch `modern/project-setup` pushed with this file at docs/modernization/PROJECT_STATE.md (the repo copy is now the canonical one). Read upstream AI_POLICY (5f). Fork already has CI (build-game.yml).
 - S1f: Owner says maintainers are OK with the effort (5g). Fork has 0 Actions runs so far.
+- S1g: Owner decided: standalone fork, not for sharing (5h).
 - Next: owner enables Actions on fork and confirms a baseline Linux build passes; inventory add-ons' OGRE 14 compatibility; start `modern/ogre14-port` branch; PBR spike plan.
 
 ---
@@ -245,6 +246,16 @@ Existing CI in the fork (inherited from upstream, .github/workflows/):
 - Owner reports the RoR maintainers are OK with the modernization effort (reported by owner, no link or quote recorded yet). TODO: owner to save where/when they said so (forum thread, Discord, or GitHub issue URL) so it can be cited in future PR descriptions.
 - Still required by AI_POLICY: owner reviews and tests each change, discloses AI help in PRs, and opens any upstream PR personally. Per-feature agreement (OGRE 14 bump, PBR material format) should be confirmed in writing before large PRs.
 - Baseline CI check (public GitHub API, Session 1f): 0 workflow runs on the fork, so Actions is not enabled yet or no run has been triggered. Next push after enabling should start `build-game.yml`.
+
+---
+
+## 5h. Scope decision: standalone fork (Session 1g)
+
+- Owner decision: the project stays a STANDALONE fork, not intended for sharing or upstream PRs.
+- Effects: no upstream PRs, so the upstream AI_POLICY disclosure rules (5f) are not triggered; maintainer sign-off is no longer a gate. If this ever changes (sharing, upstream PR), re-read 5f first.
+- Still true: the code is GPL-3.0. If builds are ever distributed to others, the matching source must be made available under GPL-3.0 (the public fork already satisfies this). Keep COPYING and license headers. Not legal advice.
+- Freedom gained: can break mod compatibility, change material formats, drop legacy add-ons, and choose the renderer path without upstream constraints.
+- Keep the fork's `master` in sync with upstream only if desired; no obligation.
 
 ---
 
