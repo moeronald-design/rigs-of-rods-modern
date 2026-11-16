@@ -21,7 +21,9 @@ Status: RESEARCH PHASE. No code written. No decisions locked.
 - S1f: Owner says maintainers are OK with the effort (5g). Fork has 0 Actions runs so far.
 - S1g: Owner decided: standalone fork, not for sharing (5h).
 - S1h: Actions enabled. Linux baseline failed on libalsa Conan conflict; fixed in conanfile.py (override libalsa/1.2.10); Linux baseline now GREEN. Windows baseline pending (5i).
-- Next (revised): start `modern/ogre14-port` with a from-source OGRE 14.5.2 workflow; keep checking Windows baseline. Older line follows:
+- S1i-j: OGRE 14 branch + compile loop; owner said Windows ONLY (5k); first error categories recorded; Windows baseline green.
+- Next (revised): run the Windows compile loop; fix errors in rounds (5k fix order);
+- (old) start `modern/ogre14-port` with a from-source OGRE 14.5.2 workflow; keep checking Windows baseline. Older line follows:
 - (old) owner enables Actions on fork and confirms a baseline Linux build passes; inventory add-ons' OGRE 14 compatibility; start `modern/ogre14-port` branch; PBR spike plan.
 
 ---
@@ -295,6 +297,28 @@ Plan for OGRE 14 branch (`modern/ogre14-port`):
 - First run: https://github.com/moeronald-design/rigs-of-rods-modern/actions/runs/43975863139 (in progress at last check).
 - Reading results: jobs endpoint `.../actions/runs/<id>/jobs`, log via `curl -L .../actions/jobs/<job_id>/logs`; grep for `error:`.
 - Windows baseline run 43968942511 (Windows job) still to be recorded.
+
+## 5k. Windows-only decision + first OGRE 14 compile results (Session 1j)
+
+OWNER DECISION: target is WINDOWS ONLY. Linux is not wanted. Linux loop workflow removed; replaced by `.github/workflows/ogre14-windows.yml` (windows-2025, MSVC, vcpkg for openal-soft/rapidjson/fmt/curl/ois/angelscript, OGRE 14.5.2 + MyGUI 3.4.3 + SocketW built from source into C:/deps, ninja -k 0). MSVC flag `/std:c++17 /Zc:__cplusplus` added in CMakeLists WIN32 block. (CMakeLists.txt uses CRLF line endings: edit as bytes, never via text-mode rewrite.)
+
+Baseline: upstream Conan build (build-game.yml) on commit 9341352: Windows build SUCCESS and Linux SUCCESS (run 43968942511). So the unmodified game builds on Windows in the fork.
+
+First OGRE 14 compile (done on Linux GCC as a quick probe; errors are API issues in RoR code, platform-independent): 91 translation units failed.
+- Compiling as C++11 was the first cause (OGRE 14/MyGUI 3.4.3 need C++17). Fixed (GCC flag + MSVC flag). Linux run 43975863139 was a FALSE GREEN: my script's PIPESTATUS check masked failures. Fixed in later runs.
+- After C++17 fix (run 43978278115), errors only in source/main/gfx and gui so far (list was truncated to first 150 of 254 unique). Categories:
+  1. Ogre::Camera and Ogre::Light lost setPosition/setDirection/lookAt/roll/setFixedYawAxis/getPosition/getOrientation/setOrientation (must be done on the attached SceneNode): GfxActor, GfxWater, EnvironmentMap, SurveyMapTextureCreator, SkyXManager, Hydrax (ProjectedGrid etc.). Largest group.
+  2. Ogre::TextAreaOverlayElement members now private (mColoursChanged, mRenderOp, mAllocSize): ColoredTextAreaOverlayElement needs rewrite (or replace colored text).
+  3. Particle system API changed: ParticleVisualData removed, Particle::mColour is packed RGBA, ParticleSystemRenderer virtuals changed, ParticleIterator/affector iterator: OgreShaderParticleRenderer, FireExtinguisherAffector.
+  4. Ogre::WorkQueue API changed (addRequest/getChannel/addRequestHandler): GUI_RepositorySelector (online mod browser).
+  5. RENDER_QUEUE_9 removed: Hydrax GodRays, SkyX VClouds.
+  6. Camera::getProjectionMatrixRS removed: Hydrax RttManager.
+  7. RenderOperation::useGlobalInstancingVertexBufferIsAvailable removed: imgui OgreImGuiOverlay.
+  8. MyGUI 3.4.3 returns std::string_view where RoR expects std::string: DashBoardManager, RTTLayer.
+  9. Missing includes exposed by new headers: <queue>, <vector>, Ogre list typedefs (Skidmark.h, Hydrax headers, particle headers).
+  10. Hydrax: `mMaterials` non-static member errors (investigate).
+- Not yet seen: errors outside gfx/gui (physics, terrain, resources, scripting). The probe run's output only showed the first 150 sorted errors. The Windows loop now prints 200 and uploads full lists.
+- Fix order: (a) includes + RENDER_QUEUE_9 + string_view (mechanical), (b) Camera/Light via a helper that uses the parent SceneNode, (c) TextArea overlay, particle renderer, WorkQueue, ImGui overlay (small rewrites), (d) Hydrax/SkyX/Caelum decision: port or replace.
 
 ---
 

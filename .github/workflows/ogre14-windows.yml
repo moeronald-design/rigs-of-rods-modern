@@ -1,0 +1,110 @@
+name: OGRE 14 compile loop (Windows)
+# Windows-only. Builds OGRE 14.5.2, MyGUI, SocketW, AngelScript from source (cached),
+# gets the remaining libs from vcpkg, then compiles RoR with MSVC using `ninja -k 0`
+# so every compile error is reported in one run.
+on:
+  push:
+    branches: [ modern/ogre14-port ]
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-2025
+    defaults:
+      run:
+        shell: bash
+    env:
+      DEPS: C:/deps
+      VCPKG_TRIPLET: x64-windows
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Enable MSVC developer environment
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Cache vcpkg packages
+        id: cache-vcpkg
+        uses: actions/cache@v6
+        with:
+          path: C:/vcpkg/installed
+          key: ogre14-vcpkg-v1-${{ hashFiles('.github/workflows/ogre14-windows.yml') }}
+
+      - name: Install vcpkg packages
+        if: steps.cache-vcpkg.outputs.cache-hit != 'true'
+        run: |
+          vcpkg install --triplet $VCPKG_TRIPLET \
+            openal-soft rapidjson fmt "curl[openssl]" ois angelscript
+
+      - name: Cache built dependencies
+        id: cache-deps
+        uses: actions/cache@v6
+        with:
+          path: C:/deps
+          key: ogre14-win-deps-v1-${{ hashFiles('.github/workflows/ogre14-windows.yml') }}
+
+      - name: Build OGRE 14.5.2
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch v14.5.2 https://github.com/OGRECave/ogre.git C:/src/ogre
+          cmake -S C:/src/ogre -B C:/src/ogre/build -GNinja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$DEPS \
+            -DOGRE_BUILD_DEPENDENCIES=ON -DOGRE_RESOURCEMANAGER_STRICT=0 \
+            -DOGRE_BUILD_TOOLS=OFF -DOGRE_BUILD_SAMPLES=OFF -DOGRE_BUILD_TESTS=OFF \
+            -DOGRE_BUILD_RENDERSYSTEM_D3D11=ON -DOGRE_BUILD_RENDERSYSTEM_GL3PLUS=ON \
+            -DOGRE_BUILD_RENDERSYSTEM_VULKAN=OFF -DOGRE_BUILD_RENDERSYSTEM_GLES2=OFF \
+            -DOGRE_BUILD_PLUGIN_ASSIMP=OFF -DOGRE_BUILD_PLUGIN_DOT_SCENE=OFF \
+            -DOGRE_BUILD_PLUGIN_BSP=OFF -DOGRE_BUILD_PLUGIN_PCZ=OFF \
+            -DOGRE_BUILD_COMPONENT_VOLUME=OFF -DOGRE_BUILD_COMPONENT_PYTHON=OFF \
+            -DOGRE_BUILD_COMPONENT_JAVA=OFF -DOGRE_BUILD_COMPONENT_CSHARP=OFF \
+            -DOGRE_INSTALL_DEPENDENCIES=ON
+          cmake --build C:/src/ogre/build
+          cmake --install C:/src/ogre/build
+
+      - name: Build MyGUI
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch MyGUI3.4.3 https://github.com/MyGUI/mygui.git C:/src/mygui
+          cmake -S C:/src/mygui -B C:/src/mygui/build -GNinja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$DEPS -DCMAKE_PREFIX_PATH="$DEPS;C:/vcpkg/installed/$VCPKG_TRIPLET" \
+            -DMYGUI_RENDERSYSTEM=3 -DMYGUI_BUILD_DEMOS=OFF -DMYGUI_BUILD_TOOLS=OFF \
+            -DMYGUI_BUILD_PLUGINS=OFF -DMYGUI_BUILD_TEST_APP=OFF
+          cmake --build C:/src/mygui/build
+          cmake --install C:/src/mygui/build
+
+      - name: Build SocketW
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 https://github.com/RigsOfRods/socketw.git C:/src/socketw
+          cmake -S C:/src/socketw -B C:/src/socketw/build -GNinja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$DEPS -DCMAKE_PREFIX_PATH="C:/vcpkg/installed/$VCPKG_TRIPLET"
+          cmake --build C:/src/socketw/build
+          cmake --install C:/src/socketw/build
+
+      - name: Configure Rigs of Rods
+        run: |
+          cmake -S . -B build -GNinja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake \
+            -DVCPKG_TARGET_TRIPLET=$VCPKG_TRIPLET \
+            -DCMAKE_PREFIX_PATH="$DEPS" 2>&1 | tee configure.log
+
+      - name: Compile (keep going to list every error)
+        run: |
+          set +e
+          cmake --build build -- -k 0 2>&1 | tee build.log
+          rc=${PIPESTATUS[0]}
+          grep -E "error C[0-9]+|fatal error|error LNK|: error:" build.log | sed -E 's/^.*source[\\/]//' | sort -u > errors-unique.txt
+          echo "build exit code: $rc"
+          echo "unique error lines: $(wc -l < errors-unique.txt)"
+          echo "==== FIRST 200 UNIQUE ERRORS ===="
+          head -200 errors-unique.txt
+          exit $rc
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ogre14-windows-logs
+          path: |
+            configure.log
+            build.log
+            errors-unique.txt
