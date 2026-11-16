@@ -70,14 +70,21 @@ jobs:
       - name: Configure Rigs of Rods
         run: |
           cmake -S . -B build -GNinja -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_PREFIX_PATH=$DEPS -DROR_USE_PCH=OFF 2>&1 | tee configure.log
+            -DCMAKE_PREFIX_PATH=$DEPS 2>&1 | tee configure.log
 
       - name: Compile (keep going to list every error)
         run: |
+          set +e
           cmake --build build -- -k 0 2>&1 | tee build.log
-          echo "==== ERROR SUMMARY ===="
-          grep -E "error:|Error " build.log | sed 's/^.*source\///' | sort | uniq -c | sort -rn | head -80 || true
-          test "${PIPESTATUS[0]}" -eq 0
+          rc=${PIPESTATUS[0]}
+          # unique errors, project files first, then third-party headers
+          grep -E "error:|undefined reference" build.log | sed -E 's/^[^ ]*\/source\///' | sort -u > errors-unique.txt
+          grep -vE '^/opt/deps|^/usr' errors-unique.txt > errors-project.txt
+          echo "build exit code: $rc"
+          echo "unique error lines: $(wc -l < errors-unique.txt)  in project files: $(wc -l < errors-project.txt)"
+          echo "==== FIRST 150 PROJECT ERRORS ===="
+          head -150 errors-project.txt
+          exit $rc
 
       - name: Upload logs
         if: always()
@@ -87,3 +94,5 @@ jobs:
           path: |
             configure.log
             build.log
+            errors-unique.txt
+            errors-project.txt
