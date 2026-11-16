@@ -17,7 +17,8 @@ Status: RESEARCH PHASE. No code written. No decisions locked.
 - S1b: Cloned repo (commit ebf31a2, 2026-10-19). Found OGRE 1.11.6, not 13/14. Sized OGRE surface and shaders (5c).
 - S1c: Build not possible in session (no OGRE libs, no network). Scanned source for OGRE-version-sensitive APIs (5d). Confirmed Option A = version bump, Option B = rewrite.
 - S1d: Owner on mobile; chose GitHub Actions CI via a fork; target = BeamNG realism (5e). GitHub not yet linked to Claude (blocker).
-- Next: owner links GitHub + forks; Claude adds fork, writes CI workflow; inventory add-ons' OGRE 14 compatibility; PBR spike plan.
+- S1e: Fork created and linked; push works. Branch `modern/project-setup` pushed with this file at docs/modernization/PROJECT_STATE.md (the repo copy is now the canonical one). Read upstream AI_POLICY (5f). Fork already has CI (build-game.yml).
+- Next: owner enables Actions on fork and confirms a baseline Linux build passes; inventory add-ons' OGRE 14 compatibility; start `modern/ogre14-port` branch; PBR spike plan.
 
 ---
 
