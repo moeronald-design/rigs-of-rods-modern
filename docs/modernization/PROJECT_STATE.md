@@ -285,6 +285,17 @@ Plan for OGRE 14 branch (`modern/ogre14-port`):
 - Safer approach: a separate workflow (modelled on linux-native.yml) that builds OGRE 14.5.2 from source with CMake, then builds RoR against it. This gives a compile loop where the CI log shows every API break (logs are readable via curl). Dependencies to rebuild against 14: MyGUI, Caelum, PagedGeometry, SocketW, AngelScript.
 - Expected first errors: Cg program/plugin removal, renamed headers, resource system API, RTShader/Terrain/Overlay API changes, OIS vs SDL window/input setup.
 
+## 5j. OGRE 14 branch started (Session 1i)
+
+- Branch `modern/ogre14-port` (from `modern/project-setup`, includes libalsa fix). Newest copy of this state file lives on whichever branch was pushed last; keep `docs/modernization/PROJECT_STATE.md` in sync across branches when merging.
+- Added `.github/workflows/ogre14-linux.yml`: builds OGRE v14.5.2 (GL3+, no Vulkan yet), MyGUI 3.4.3 (tag unverified), SocketW, AngelScript from source into /opt/deps (cached), then configures RoR with `-DCMAKE_PREFIX_PATH=/opt/deps -DROR_USE_PCH=OFF`, compiles with `ninja -k 0` (reports ALL errors), uploads configure.log/build.log, prints an error summary.
+- Changed `cmake/DependenciesConfig.cmake`: `find_package(OGRE 14 REQUIRED COMPONENTS Bites Overlay Paging RTShaderSystem Terrain)` (dropped MeshLodGenerator, believed merged into core in 13+; unverified).
+- Changed `build-game.yml` trigger so it ignores `modern/ogre14-port` (the Conan 1.11 build would just fail there).
+- Caelum and PagedGeometry are deliberately NOT built in iteration 1 (both optional; RoR guards them with ROR_USE_CAELUM etc.). Re-add after core compiles.
+- First run: https://github.com/moeronald-design/rigs-of-rods-modern/actions/runs/43975863139 (in progress at last check).
+- Reading results: jobs endpoint `.../actions/runs/<id>/jobs`, log via `curl -L .../actions/jobs/<job_id>/logs`; grep for `error:`.
+- Windows baseline run 43968942511 (Windows job) still to be recorded.
+
 ---
 
 ## 6. Open questions for the owner
