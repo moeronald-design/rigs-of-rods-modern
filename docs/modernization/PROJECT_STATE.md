@@ -300,7 +300,7 @@ Plan for OGRE 14 branch (`modern/ogre14-port`):
 
 ## 5k. Windows-only decision + first OGRE 14 compile results (Session 1j)
 
-OWNER DECISION: target is WINDOWS ONLY. Linux is not wanted. Linux loop workflow removed; replaced by `.github/workflows/ogre14-windows.yml` (windows-2025, MSVC, vcpkg for openal-soft/rapidjson/fmt/curl/ois/angelscript, OGRE 14.5.2 + MyGUI 3.4.3 + SocketW built from source into C:/deps, ninja -k 0). MSVC flag `/std:c++17 /Zc:__cplusplus` added in CMakeLists WIN32 block. (CMakeLists.txt uses CRLF line endings: edit as bytes, never via text-mode rewrite.)
+OWNER DECISION: target is WINDOWS ONLY. Linux is not wanted. Linux loop workflow removed; replaced by `.github/workflows/ogre14-windows.yml` (windows-2025, MSVC, vcpkg for openal-soft/rapidjson/fmt/curl/ois/angelscript, OGRE 14.5.2 + MyGUI 3.4.3 + SocketW built from source into C:/deps, ninja -k 0). MSVC flag `/std:c++17 /Zc:__cplusplus` added in CMakeLists WIN32 block (NOTE: first attempt silently failed because the anchor `if (WIN32)` also matches `endif (WIN32)`; my commit 879577a was pushed WITHOUT the flag, fixed in the next commit). (CMakeLists.txt uses CRLF line endings: edit as bytes, never via text-mode rewrite.)
 
 Baseline: upstream Conan build (build-game.yml) on commit 9341352: Windows build SUCCESS and Linux SUCCESS (run 43968942511). So the unmodified game builds on Windows in the fork.
 

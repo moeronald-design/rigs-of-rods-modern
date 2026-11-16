@@ -84,6 +84,8 @@ mark_as_advanced(
 )
 
 if (WIN32)
+    # OGRE 14 and MyGUI 3.4.3 headers need C++17
+    set(CMAKE_CXX_FLAGS "/std:c++17 /Zc:__cplusplus ${CMAKE_CXX_FLAGS}")
     add_definitions("/D_CRT_SECURE_NO_WARNINGS /wd4005 /wd4996 /wd4251 /wd4275 /wd4099 /nologo")
 
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}        /MP /GL /Ox /Ob2 /Oi /Ot /Oy /fp:fast /GS- /MP /Zi")
