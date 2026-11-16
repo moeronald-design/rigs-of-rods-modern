@@ -1,7 +1,10 @@
 ---
 name: Build game
 
-on: [ push, pull_request ]
+on:
+  push:
+    branches-ignore: [ modern/ogre14-port ]
+  pull_request:
 
 jobs:
   build-gcc:

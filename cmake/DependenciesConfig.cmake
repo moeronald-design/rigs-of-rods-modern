@@ -3,7 +3,8 @@ set(CMAKE_THREAD_PREFER_PTHREAD YES)
 find_package(Threads REQUIRED)
 
 # --- Ogre 3D graphics engine ---
-find_package(OGRE 1.11 REQUIRED COMPONENTS Bites Overlay Paging RTShaderSystem MeshLodGenerator Terrain)
+# OGRE 14 migration: MeshLodGenerator was merged into the core library in OGRE 13+
+find_package(OGRE 14 REQUIRED COMPONENTS Bites Overlay Paging RTShaderSystem Terrain)
 
 # --- Object Oriented Input System ---
 find_package(OIS REQUIRED)
