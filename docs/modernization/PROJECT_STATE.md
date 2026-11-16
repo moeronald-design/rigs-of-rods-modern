@@ -318,6 +318,7 @@ First OGRE 14 compile (done on Linux GCC as a quick probe; errors are API issues
   9. Missing includes exposed by new headers: <queue>, <vector>, Ogre list typedefs (Skidmark.h, Hydrax headers, particle headers).
   10. Hydrax: `mMaterials` non-static member errors (investigate).
 - Not yet seen: errors outside gfx/gui (physics, terrain, resources, scripting). The probe run's output only showed the first 150 sorted errors. The Windows loop now prints 200 and uploads full lists.
+- Windows loop run 43979480117: OGRE configure failed: Direct3D9 render system needs DirectX9 D3DX9 lib (NOTFOUND). Fix: `-DOGRE_BUILD_RENDERSYSTEM_D3D9=OFF` (D3D9 is obsolete; D3D11 + GL3+ kept). OGRE configure itself takes ~4.5 min (downloads its own deps).
 - Fix order: (a) includes + RENDER_QUEUE_9 + string_view (mechanical), (b) Camera/Light via a helper that uses the parent SceneNode, (c) TextArea overlay, particle renderer, WorkQueue, ImGui overlay (small rewrites), (d) Hydrax/SkyX/Caelum decision: port or replace.
 
 ---
