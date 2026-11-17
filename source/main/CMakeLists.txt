@@ -541,12 +541,9 @@ if (NOT WIN32)
     set(CFG_COMMENT_RENDERSYSTEM_D3D9 "# ")
 endif ()
 
-if (WIN32)
-    set(CFG_COMMENT_RENDERSYSTEM_GL "# ")
-endif ()
-
-set(CFG_COMMENT_RENDERSYSTEM_D3D11 "# ")
-set(CFG_COMMENT_RENDERSYSTEM_GL3PLUS "# ")
+# OGRE 14 port: Windows uses Direct3D11 (default) and GL3Plus; D3D9/GL render systems no longer exist.
+set(CFG_COMMENT_RENDERSYSTEM_D3D9 "# ")
+set(CFG_COMMENT_RENDERSYSTEM_GL "# ")
 
 if (DEFINED OGRE_PLUGIN_DIR AND NOT WIN32)
     set(PLUGINS_FOLDER "${OGRE_PLUGIN_DIR}")
@@ -555,8 +552,8 @@ else ()
 endif ()
 
 if (WIN32)
-    set(CFG_OGRE_PLUGIN_CAELUM "Plugin=Caelum")
-    set(CFG_OGRE_PLUGIN_CAELUM_D "Plugin=Caelum_d")
+    set(CFG_OGRE_PLUGIN_CAELUM "") # OGRE 14 port: Caelum not built yet
+    set(CFG_OGRE_PLUGIN_CAELUM_D "")
 else ()
     if (ROR_USE_CAELUM STREQUAL "SYSTEM")
         set(CFG_OGRE_PLUGIN_CAELUM "Plugin=../libCaelum.so")

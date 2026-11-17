@@ -144,6 +144,24 @@ jobs:
           head -200 errors-unique.txt
           exit $rc
 
+      - name: Package for testing
+        run: |
+          cmake --install build --prefix redist 2>&1 | tail -5 || true
+          mkdir -p redist
+          for d in "$OGRE_PREFIX/bin" "$MYGUI_PREFIX/bin" "$SOCKETW_PREFIX/bin" "C:/vcpkg/installed/$VCPKG_TRIPLET/bin" "build/bin"; do
+            if [ -d "$d" ]; then cp -n "$d"/*.dll redist/ 2>/dev/null || true; fi
+          done
+          ls redist | head -80
+          powershell -Command "Compress-Archive -Path redist/* -DestinationPath RoR-ogre14-windows.zip"
+          ls -la RoR-ogre14-windows.zip
+
+      - name: Upload game build
+        uses: actions/upload-artifact@v7
+        with:
+          name: RoR-ogre14-windows
+          path: RoR-ogre14-windows.zip
+          retention-days: 14
+
       - name: Upload logs
         if: always()
         uses: actions/upload-artifact@v7
