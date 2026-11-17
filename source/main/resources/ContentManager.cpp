@@ -145,6 +145,16 @@ void ContentManager::AddResourcePack(ResourcePack const& resource_pack, std::str
 
 void ContentManager::InitContentManager()
 {
+    // OGRE 14: built-in shader includes (OgreUnifiedShader.h etc.) and the RTSS shader library
+    // must be available in the 'OgreInternal' resource group. Packaged under resources/ogre14/.
+    {
+        const std::string ogre_media = PathCombine(App::sys_resources_dir->getStr(), "ogre14");
+        ResourceGroupManager::getSingleton().addResourceLocation(
+            PathCombine(ogre_media, "Main"), "FileSystem", Ogre::RGN_INTERNAL);
+        ResourceGroupManager::getSingleton().addResourceLocation(
+            PathCombine(ogre_media, "RTShaderLib"), "FileSystem", Ogre::RGN_INTERNAL);
+    }
+
     ResourceGroupManager::getSingleton().addResourceLocation(
         App::sys_config_dir->getStr(), "FileSystem", RGN_CONFIG, /*recursive=*/false, /*readOnly=*/false);
     ResourceGroupManager::getSingleton().addResourceLocation(

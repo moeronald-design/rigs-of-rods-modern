@@ -153,7 +153,14 @@ jobs:
           done
           # MyGUI (and others) install DLLs in subfolders like bin/Release: copy recursively
           find C:/deps -iname '*.dll' -exec cp -n {} redist/ \; 2>/dev/null || true
-          for req in MyGUIEngine.dll OgreMain.dll RoR.exe; do
+          # OGRE 14 media needed at runtime (group OgreInternal): Main + RTShaderLib -> resources/ogre14/
+          hdr=$(find "$OGRE_PREFIX" -name OgreUnifiedShader.h | head -1)
+          if [ -z "$hdr" ]; then echo "MISSING: OGRE Media (OgreUnifiedShader.h) under $OGRE_PREFIX"; exit 1; fi
+          media=$(dirname "$(dirname "$hdr")")
+          echo "OGRE media: $media"
+          mkdir -p redist/resources/ogre14
+          cp -r "$media/Main" "$media/RTShaderLib" redist/resources/ogre14/
+          for req in MyGUIEngine.dll OgreMain.dll RoR.exe resources/ogre14/Main/OgreUnifiedShader.h; do
             if [ ! -f "redist/$req" ]; then echo "MISSING in package: $req"; find C:/deps build -iname "${req%.*}*" | head; exit 1; fi
           done
           ls redist | head -80
