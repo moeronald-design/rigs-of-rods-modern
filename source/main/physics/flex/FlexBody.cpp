@@ -146,7 +146,7 @@ FlexBody::FlexBody(
     if (m_has_texture) optimalVD->addElement(3, 0, VET_FLOAT2, VES_TEXTURE_COORDINATES);
     optimalVD->sort();
     optimalVD->closeGapsInSource();
-    BufferUsageList optimalBufferUsages;
+    Ogre::VertexData::BufferUsageList optimalBufferUsages;
     for (size_t u = 0; u <= optimalVD->getMaxSource(); ++u)
     {
         optimalBufferUsages.push_back(HardwareBuffer::HBU_DYNAMIC_WRITE_ONLY_DISCARDABLE);

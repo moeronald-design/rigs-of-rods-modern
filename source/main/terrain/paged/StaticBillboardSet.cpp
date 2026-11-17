@@ -513,7 +513,7 @@ void StaticBillboardSet::build()
          mPtrMesh->_setBoundingSphereRadius(temp.length() * 0.5f);
 
          // Loading mesh
-         Ogre::LoggingLevel logLev = LogManager::getSingleton().getDefaultLog()->getLogDetail();
+         Ogre::LoggingLevel logLev = LL_NORMAL; // OGRE 14: Log::getLogDetail removed
          LogManager::getSingleton().setLogDetail(LL_LOW);
          mPtrMesh->load();
          LogManager::getSingleton().setLogDetail(logLev);

@@ -385,9 +385,6 @@ void DownloadResourceFile(RepoFileInstallRequest request)
 
 RepositorySelector::RepositorySelector()
 {
-    Ogre::WorkQueue* wq = Ogre::Root::getSingleton().getWorkQueue();
-    m_ogre_workqueue_channel = wq->getChannel("RoR/RepoThumbnails");
-    wq->addRequestHandler(m_ogre_workqueue_channel, &m_repo_image_request_handler);
     m_fallback_thumbnail = FetchIcon("ror.png");
 }
 
@@ -1496,7 +1493,7 @@ void RepositorySelector::DownloadAttachment(int attachment_id, std::string const
         request->attachment_id = attachment_id;
         request->attachment_ext = attachment_ext;
 
-        Ogre::Root::getSingleton().getWorkQueue()->addRequest(m_ogre_workqueue_channel, 1234, Ogre::Any(request));
+        Ogre::Root::getSingleton().getWorkQueue()->addTask([request]() { RepositorySelector::DownloadImage(request); });
     }
 }
 
@@ -1792,7 +1789,7 @@ void RepositorySelector::DrawThumbnail(ResourceItemArrayPos_t resource_arraypos,
                 request->thumb_resource_id = m_data.items[request->thumb_resourceitem_idx].resource_id;
                 request->thumb_url = m_data.items[request->thumb_resourceitem_idx].icon_url;
 
-                Ogre::Root::getSingleton().getWorkQueue()->addRequest(m_ogre_workqueue_channel, 1234, Ogre::Any(request));
+                Ogre::Root::getSingleton().getWorkQueue()->addTask([request]() { RepositorySelector::DownloadImage(request); });
                 m_data.items[resource_arraypos].thumbnail_dl_queued = true;
             }
         }
@@ -2012,14 +2009,6 @@ void RepositorySelector::LoadDownloadedImage(RepoImageDownloadRequest* request)
             m_repo_attachments[request->attachment_id] = tex;
         }
     }
-}
-
-// This will be removed after OGRE14 migration is complete
-Ogre::WorkQueue::Response* RepoImageRequestHandler::handleRequest(const Ogre::WorkQueue::Request* req, const Ogre::WorkQueue* srcQ)
-{
-    RepoImageDownloadRequest* request = Ogre::any_cast<RepoImageDownloadRequest*>(req->getData());
-    RepositorySelector::DownloadImage(request);
-    return nullptr; // Because we use `MSG_NET_DOWNLOAD_REPOIMAGE_*` message to notify main thread, we don't need OGRE's response system here.
 }
 
 bool RepositorySelector::CheckRepoFileIsInstalled(ResourceFiles& resfile, std::string& out_filepath)

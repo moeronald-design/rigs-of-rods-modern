@@ -1049,7 +1049,6 @@ static AngelScript::CScriptArray* getElementTemplatesHelper(Ogre::OverlayManager
     AngelScript::asITypeInfo* typeinfo = App::GetScriptEngine()->getEngine()->GetTypeInfoByDecl("array<Ogre::OverlayElement@>");
     return AngelScript::CScriptArray::Create(typeinfo);
 }
-}
 
 static Ogre::Overlay* OverlayManagerCreate(Ogre::OverlayManager* self, const std::string& name)
 {

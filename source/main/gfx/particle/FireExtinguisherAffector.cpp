@@ -77,12 +77,11 @@ FireExtinguisherAffector::FireExtinguisherAffector(ParticleSystem* psys)
 //-----------------------------------------------------------------------
 void FireExtinguisherAffector::_affectParticles(ParticleSystem* pSystem, Real timeElapsed)
 {
-    ExtinguishableFireAffectorFactory::affectorIterator affIt = mEfaf->getAffectorIterator();
     ExtinguishableFireAffector* fire;
 
-    while(affIt.hasMoreElements())
+    for (ParticleAffector* aff : mEfaf->getAffectors())
     {
-        fire = (ExtinguishableFireAffector*)affIt.getNext();
+        fire = (ExtinguishableFireAffector*)aff;
 
         if (fire->isTemplate())
             continue;
@@ -90,12 +89,11 @@ void FireExtinguisherAffector::_affectParticles(ParticleSystem* pSystem, Real ti
         Real squaredRadius = Math::Pow(fire->getRadius(), 2);
         Vector3 middlePoint = fire->getAbsoluteMiddlePoint();
 
-        ParticleIterator pi = pSystem->_getIterator();
         Particle *p;
         int fireHits = 0;
-        while (!pi.end())
+        for (size_t pi = 0; pi < pSystem->getNumParticles(); ++pi)
         {
-            p = pi.getNext();
+            p = pSystem->getParticle(pi);
 
             if ( middlePoint.squaredDistance(p->mPosition) < squaredRadius )
             {

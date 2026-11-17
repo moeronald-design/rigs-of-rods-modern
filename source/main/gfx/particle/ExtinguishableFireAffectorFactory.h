@@ -49,10 +49,8 @@ class ExtinguishableFireAffectorFactory : public ParticleAffectorFactory
 
 public:
 
-    typedef VectorIterator<vector<ParticleAffector*>::type> affectorIterator;
-
-    /** Allow external access to the mFactories iterator */
-    affectorIterator getAffectorIterator() { return affectorIterator(mAffectors.begin(), mAffectors.end()); }
+    /** Allow external access to the created affectors (OGRE 14: plain std::vector, VectorIterator removed) */
+    const std::vector<ParticleAffector*>& getAffectors() const { return mAffectors; }
 };
 
 /// @} // addtogroup Particle

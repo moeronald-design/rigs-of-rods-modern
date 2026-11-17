@@ -261,10 +261,6 @@ ColorMap::ColorMap(TexturePtr map, MapChannel channel)
 	//Prepare a PixelBox (24-bit RGB) to receive the color values
 	VertexElementType format = Root::getSingleton().getRenderSystem()->getColourVertexElementType();
 	switch (format){
-		case VET_COLOUR_ARGB:
-			//DirectX9
-			pixels = new PixelBox(Box(0, 0, buff->getWidth(), buff->getHeight()), PF_A8R8G8B8);
-			break;
 		case VET_COLOUR_ABGR:
 			//OpenGL
 			pixels = new PixelBox(Box(0, 0, buff->getWidth(), buff->getHeight()), PF_A8B8G8R8);

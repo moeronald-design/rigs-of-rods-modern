@@ -24,7 +24,6 @@
 
 #include <Overlay/OgreOverlayManager.h>
 #include <Overlay/OgreOverlay.h>
-#include <Plugins/ParticleFX/OgreBoxEmitterFactory.h>
 
 
 #include "Application.h"
@@ -37,7 +36,6 @@
 
 #include "CacheSystem.h"
 
-#include "OgreShaderParticleRenderer.h"
 
 // Removed by Skybon as part of OGRE 1.9 port 
 // Disabling temporarily for 1.8.1 as well. ~ only_a_ptr, 2015-11
@@ -195,8 +193,8 @@ void ContentManager::InitContentManager()
     // TODO: FIX UNDER LINUX!
     // register particle classes
     LOG("RoR|ContentManager: Registering Particle Box Emitter");
-    ParticleSystemRendererFactory* mParticleSystemRendererFact = OGRE_NEW ShaderParticleRendererFactory();
-    ParticleSystemManager::getSingleton().addRendererFactory(mParticleSystemRendererFact);
+    // OGRE 14 port: custom ShaderParticleRenderer disabled (written for the removed 1.x ParticleSystemRenderer API).
+    // TODO: rewrite it, or replace with OGRE 14 built-in billboard particles. Particle scripts using renderer "shader" need the fallback.
 
     // Removed by Skybon as part of OGRE 1.9 port 
     // Disabling temporarily for 1.8.1 as well.  ~ only_a_ptr, 2015-11
