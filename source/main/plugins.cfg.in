@@ -10,4 +10,5 @@ PluginFolder=@PLUGINS_FOLDER@
 @CFG_COMMENT_RENDERSYSTEM_GL3PLUS@Plugin=RenderSystem_GL3Plus
 Plugin=Plugin_ParticleFX
 Plugin=Plugin_OctreeSceneManager
+Plugin=Codec_STBI
 @CFG_OGRE_PLUGIN_CAELUM@
