@@ -160,7 +160,10 @@ jobs:
           echo "OGRE media: $media"
           mkdir -p redist/resources/ogre14
           cp -r "$media/Main" "$media/RTShaderLib" redist/resources/ogre14/
-          for req in MyGUIEngine.dll OgreMain.dll RoR.exe resources/ogre14/Main/OgreUnifiedShader.h; do
+          # Terrain component shaders (TerrainTransforms.glsl etc.) go into Main (already in OgreInternal)
+          if [ -d "$media/Terrain" ]; then cp "$media"/Terrain/* redist/resources/ogre14/Main/; else
+            for f in TerrainSurface.glsl TerrainTransforms.glsl; do curl -sfL -o redist/resources/ogre14/Main/$f "https://raw.githubusercontent.com/OGRECave/ogre/v14.5.2/Media/Terrain/$f"; done; fi
+          for req in MyGUIEngine.dll OgreMain.dll RoR.exe resources/ogre14/Main/OgreUnifiedShader.h resources/ogre14/Main/TerrainTransforms.glsl; do
             if [ ! -f "redist/$req" ]; then echo "MISSING in package: $req"; find C:/deps build -iname "${req%.*}*" | head; exit 1; fi
           done
           ls redist | head -80
