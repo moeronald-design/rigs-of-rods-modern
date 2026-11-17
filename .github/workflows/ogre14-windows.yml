@@ -1,7 +1,8 @@
 name: OGRE 14 compile loop (Windows)
-# Windows-only. Builds OGRE 14.5.2, MyGUI, SocketW, AngelScript from source (cached),
-# gets the remaining libs from vcpkg, then compiles RoR with MSVC using `ninja -k 0`
-# so every compile error is reported in one run.
+# Windows-only. Builds OGRE 14.5.2, MyGUI, SocketW from source, gets the rest from vcpkg,
+# then compiles RoR with MSVC using `ninja -k 0` so every compile error is reported at once.
+# Each dependency is cached the moment it is built (so a later failure never loses it).
+# To force a rebuild of a dependency, bump its key suffix (v1 -> v2).
 on:
   push:
     branches: [ modern/ogre14-port ]
@@ -14,40 +15,49 @@ jobs:
       run:
         shell: bash
     env:
-      DEPS: C:/deps
       VCPKG_TRIPLET: x64-windows
+      VCPKG_PREFIX: C:/vcpkg/installed/x64-windows
+      OGRE_PREFIX: C:/deps/ogre
+      MYGUI_PREFIX: C:/deps/mygui
+      SOCKETW_PREFIX: C:/deps/socketw
     steps:
       - uses: actions/checkout@v7
 
       - name: Enable MSVC developer environment
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Cache vcpkg packages
-        id: cache-vcpkg
-        uses: actions/cache@v6
+      # ---------------- vcpkg ----------------
+      - name: Restore vcpkg cache
+        id: c-vcpkg
+        uses: actions/cache/restore@v6
         with:
           path: C:/vcpkg/installed
-          key: ogre14-vcpkg-v1-${{ hashFiles('.github/workflows/ogre14-windows.yml') }}
-
+          key: ogre14-vcpkg-v2
       - name: Install vcpkg packages
-        if: steps.cache-vcpkg.outputs.cache-hit != 'true'
+        if: steps.c-vcpkg.outputs.cache-hit != 'true'
         run: |
           vcpkg install --triplet $VCPKG_TRIPLET \
-            openal-soft rapidjson fmt "curl[openssl]" ois angelscript
-
-      - name: Cache built dependencies
-        id: cache-deps
-        uses: actions/cache@v6
+            openal-soft rapidjson fmt "curl[openssl]" ois angelscript freetype zlib
+      - name: Save vcpkg cache
+        if: steps.c-vcpkg.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
         with:
-          path: C:/deps
-          key: ogre14-win-deps-v1-${{ hashFiles('.github/workflows/ogre14-windows.yml') }}
+          path: C:/vcpkg/installed
+          key: ogre14-vcpkg-v2
 
+      # ---------------- OGRE ----------------
+      - name: Restore OGRE cache
+        id: c-ogre
+        uses: actions/cache/restore@v6
+        with:
+          path: C:/deps/ogre
+          key: ogre14-ogre-v1
       - name: Build OGRE 14.5.2
-        if: steps.cache-deps.outputs.cache-hit != 'true'
+        if: steps.c-ogre.outputs.cache-hit != 'true'
         run: |
           git clone --depth 1 --branch v14.5.2 https://github.com/OGRECave/ogre.git C:/src/ogre
           cmake -S C:/src/ogre -B C:/src/ogre/build -GNinja -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=$DEPS \
+            -DCMAKE_INSTALL_PREFIX=$OGRE_PREFIX \
             -DOGRE_BUILD_DEPENDENCIES=ON -DOGRE_RESOURCEMANAGER_STRICT=0 \
             -DOGRE_BUILD_TOOLS=OFF -DOGRE_BUILD_SAMPLES=OFF -DOGRE_BUILD_TESTS=OFF \
             -DOGRE_BUILD_RENDERSYSTEM_D3D11=ON -DOGRE_BUILD_RENDERSYSTEM_GL3PLUS=ON \
@@ -60,33 +70,67 @@ jobs:
             -DOGRE_INSTALL_DEPENDENCIES=ON
           cmake --build C:/src/ogre/build
           cmake --install C:/src/ogre/build
+      - name: Save OGRE cache
+        if: steps.c-ogre.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: C:/deps/ogre
+          key: ogre14-ogre-v1
 
+      # ---------------- MyGUI ----------------
+      - name: Restore MyGUI cache
+        id: c-mygui
+        uses: actions/cache/restore@v6
+        with:
+          path: C:/deps/mygui
+          key: ogre14-mygui-v1
       - name: Build MyGUI
-        if: steps.cache-deps.outputs.cache-hit != 'true'
+        if: steps.c-mygui.outputs.cache-hit != 'true'
         run: |
           git clone --depth 1 --branch MyGUI3.4.3 https://github.com/MyGUI/mygui.git C:/src/mygui
           cmake -S C:/src/mygui -B C:/src/mygui/build -GNinja -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=$DEPS -DCMAKE_PREFIX_PATH="$DEPS;C:/vcpkg/installed/$VCPKG_TRIPLET" \
+            -DCMAKE_INSTALL_PREFIX=$MYGUI_PREFIX \
+            -DCMAKE_PREFIX_PATH="$OGRE_PREFIX;$VCPKG_PREFIX" \
             -DMYGUI_RENDERSYSTEM=3 -DMYGUI_BUILD_DEMOS=OFF -DMYGUI_BUILD_TOOLS=OFF \
-            -DMYGUI_BUILD_PLUGINS=OFF -DMYGUI_BUILD_TEST_APP=OFF
+            -DMYGUI_BUILD_PLUGINS=OFF -DMYGUI_BUILD_TEST_APP=OFF -DMYGUI_BUILD_DOCS=OFF
           cmake --build C:/src/mygui/build
           cmake --install C:/src/mygui/build
+      - name: Save MyGUI cache
+        if: steps.c-mygui.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: C:/deps/mygui
+          key: ogre14-mygui-v1
 
+      # ---------------- SocketW ----------------
+      - name: Restore SocketW cache
+        id: c-socketw
+        uses: actions/cache/restore@v6
+        with:
+          path: C:/deps/socketw
+          key: ogre14-socketw-v1
       - name: Build SocketW
-        if: steps.cache-deps.outputs.cache-hit != 'true'
+        if: steps.c-socketw.outputs.cache-hit != 'true'
         run: |
           git clone --depth 1 https://github.com/RigsOfRods/socketw.git C:/src/socketw
           cmake -S C:/src/socketw -B C:/src/socketw/build -GNinja -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=$DEPS -DCMAKE_PREFIX_PATH="C:/vcpkg/installed/$VCPKG_TRIPLET"
+            -DCMAKE_INSTALL_PREFIX=$SOCKETW_PREFIX -DCMAKE_PREFIX_PATH="$VCPKG_PREFIX"
           cmake --build C:/src/socketw/build
           cmake --install C:/src/socketw/build
+      - name: Save SocketW cache
+        if: steps.c-socketw.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: C:/deps/socketw
+          key: ogre14-socketw-v1
 
+      # ---------------- RoR ----------------
       - name: Configure Rigs of Rods
         run: |
           cmake -S . -B build -GNinja -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake \
             -DVCPKG_TARGET_TRIPLET=$VCPKG_TRIPLET \
-            -DCMAKE_PREFIX_PATH="$DEPS" 2>&1 | tee configure.log
+            -DCMAKE_PREFIX_PATH="$OGRE_PREFIX;$MYGUI_PREFIX;$SOCKETW_PREFIX" 2>&1 | tee configure.log
 
       - name: Compile (keep going to list every error)
         run: |

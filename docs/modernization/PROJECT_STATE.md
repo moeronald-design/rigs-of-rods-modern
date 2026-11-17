@@ -319,6 +319,7 @@ First OGRE 14 compile (done on Linux GCC as a quick probe; errors are API issues
   10. Hydrax: `mMaterials` non-static member errors (investigate).
 - Not yet seen: errors outside gfx/gui (physics, terrain, resources, scripting). The probe run's output only showed the first 150 sorted errors. The Windows loop now prints 200 and uploads full lists.
 - Windows loop run 43979480117: OGRE configure failed: Direct3D9 render system needs DirectX9 D3DX9 lib (NOTFOUND). Fix: `-DOGRE_BUILD_RENDERSYSTEM_D3D9=OFF` (D3D9 is obsolete; D3D11 + GL3+ kept). OGRE configure itself takes ~4.5 min (downloads its own deps).
+- Windows loop run 43982686255 (commit 22074fc): OGRE 14.5.2 BUILT AND INSTALLED OK on MSVC (configure ~4.5 min). MyGUI 3.4.3 configure failed: FreeType not found (only missing required package). Fix: add `freetype` (and `zlib`) to the vcpkg list. Also restructured the workflow: each dependency has its own cache key (ogre14-vcpkg-v2, -ogre-v1, -mygui-v1, -socketw-v1) saved IMMEDIATELY after its build with actions/cache/save, because the old combined cache was only saved when the whole job succeeded (so every retry rebuilt OGRE). Deps now install to C:/deps/{ogre,mygui,socketw}. Bump a key suffix to force a rebuild of that dependency.
 - Fix order: (a) includes + RENDER_QUEUE_9 + string_view (mechanical), (b) Camera/Light via a helper that uses the parent SceneNode, (c) TextArea overlay, particle renderer, WorkQueue, ImGui overlay (small rewrites), (d) Hydrax/SkyX/Caelum decision: port or replace.
 
 ---
