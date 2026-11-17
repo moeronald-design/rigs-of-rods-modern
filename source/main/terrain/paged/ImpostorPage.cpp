@@ -379,7 +379,7 @@ unsigned long ImpostorTexture::GUID = 0;
 //Do not use this constructor yourself - instead, call getTexture()
 //to get/create an ImpostorTexture for an Entity.
 ImpostorTexture::ImpostorTexture(ImpostorPage *group, Entity *entity) :
-loader(0)
+loader(nullptr)
 {
 	//Store scene manager and entity
    ImpostorTexture::sceneMgr = group->getParentPagedGeometry()->getSceneManager();

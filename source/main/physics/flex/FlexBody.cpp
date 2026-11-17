@@ -146,12 +146,7 @@ FlexBody::FlexBody(
     if (m_has_texture) optimalVD->addElement(3, 0, VET_FLOAT2, VES_TEXTURE_COORDINATES);
     optimalVD->sort();
     optimalVD->closeGapsInSource();
-    Ogre::VertexData::BufferUsageList optimalBufferUsages;
-    for (size_t u = 0; u <= optimalVD->getMaxSource(); ++u)
-    {
-        optimalBufferUsages.push_back(HardwareBuffer::HBU_DYNAMIC_WRITE_ONLY_DISCARDABLE);
-    }
-
+    // OGRE 14: buffer usages are chosen by the manager; reorganiseBuffers takes only the declaration
     //adding color buffers, well get the reference later
     if (m_has_texture_blend)
     {
@@ -193,7 +188,7 @@ FlexBody::FlexBody(
     //LOG("FLEXBODY reorganizing buffers");
     if (mesh->sharedVertexData)
     {
-        mesh->sharedVertexData->reorganiseBuffers(optimalVD, optimalBufferUsages);
+        mesh->sharedVertexData->reorganiseBuffers(optimalVD);
         mesh->sharedVertexData->removeUnusedBuffers();
         mesh->sharedVertexData->closeGapsInBindings();
     }
@@ -203,7 +198,7 @@ FlexBody::FlexBody(
         SubMesh* sm = smIt.getNext();
         if (!sm->useSharedVertices)
         {
-            sm->vertexData->reorganiseBuffers(optimalVD->clone(), optimalBufferUsages);
+            sm->vertexData->reorganiseBuffers(optimalVD->clone());
             sm->vertexData->removeUnusedBuffers();
             sm->vertexData->closeGapsInBindings();
         }
