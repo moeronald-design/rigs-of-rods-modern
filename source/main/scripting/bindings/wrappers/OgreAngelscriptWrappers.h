@@ -27,6 +27,8 @@
 
 #pragma once
 
+#include "Ogre14Compat.h"
+
 #include "Application.h"
 #include "ScriptEngine.h"
 #include "ScriptUtils.h"
@@ -1032,20 +1034,21 @@ static AngelScript::CScriptArray* get2DElementsHelper(Ogre::Overlay* self)
     catch (...) { App::GetScriptEngine()->forwardExceptionAsScriptEvent("Ogre::Overlay::get2DElements()"); return (CScriptArray*)nullptr; }
 }
 
+/***LIGHT*** (OGRE 14: Light has no own position/direction; they live on the attached SceneNode)*/
+static void LightSetPosition3(Ogre::Light* l, float x, float y, float z) { RoR::OgreCompat::setPosition(l, Ogre::Vector3(x, y, z)); }
+static void LightSetPositionV(Ogre::Light* l, const Ogre::Vector3& v) { RoR::OgreCompat::setPosition(l, v); }
+static void LightSetDirection3(Ogre::Light* l, float x, float y, float z) { RoR::OgreCompat::setDirection(l, Ogre::Vector3(x, y, z)); }
+static void LightSetDirectionV(Ogre::Light* l, const Ogre::Vector3& v) { RoR::OgreCompat::setDirection(l, v); }
+static const Ogre::Vector3& LightGetPosition(Ogre::Light* l) { static Ogre::Vector3 v; v = RoR::OgreCompat::getPosition(l); return v; }
+static const Ogre::Vector3& LightGetDirection(Ogre::Light* l) { static Ogre::Vector3 v; v = RoR::OgreCompat::getDirection(l); return v; }
+
 /***OVERLAYMANAGER***/
 static AngelScript::CScriptArray* getElementTemplatesHelper(Ogre::OverlayManager* self)
 {
-    try {
-        auto iterable = self->getTemplateIterator();
-        // we must cast on the go (unlike get2DElements() this actually returns list of Ogre::OverlayElement*), see ATTENTION! below.
-        AngelScript::asITypeInfo* typeinfo = App::GetScriptEngine()->getEngine()->GetTypeInfoByDecl("array<Ogre::OverlayElement@>");
-        AngelScript::CScriptArray* arr = AngelScript::CScriptArray::Create(typeinfo);
-        for (auto& elem_pair: iterable) {
-            OverlayElement* elem = static_cast<Ogre::OverlayElement*>(elem_pair.second);
-            arr->InsertLast(&elem);  // TORN HAIR HERE!! Don't forget to pass ref-types as pointer-to-pointer!!
-        }
-        return arr; }
-    catch (...) { App::GetScriptEngine()->forwardExceptionAsScriptEvent("Ogre::OverlayManager::getTemplates()"); return (CScriptArray*)nullptr; }
+    // OGRE 14: template registry removed from OverlayManager; returns empty array. TODO(runtime-test)
+    AngelScript::asITypeInfo* typeinfo = App::GetScriptEngine()->getEngine()->GetTypeInfoByDecl("array<Ogre::OverlayElement@>");
+    return AngelScript::CScriptArray::Create(typeinfo);
+}
 }
 
 static Ogre::Overlay* OverlayManagerCreate(Ogre::OverlayManager* self, const std::string& name)
@@ -1130,7 +1133,7 @@ static Ogre::OverlayElement* OverlayManagerCloneOverlayElementFromTemplate(Ogre:
 
 static bool OverlayManagerIsTemplate(Ogre::OverlayManager* self, const std::string& name)
 {
-    try {return self->isTemplate(name);}
+    try {return false; /* OGRE 14: OverlayManager::isTemplate removed */}
     catch(...) {App::GetScriptEngine()->forwardExceptionAsScriptEvent("Ogre::OverlayManager::isTemplate()"); return false;}
 }
 

@@ -167,7 +167,6 @@ void ShadowManager::updateTerrainMaterial(Ogre::TerrainPSSMMaterialGenerator::SM
     if (App::gfx_shadow_type->getEnum<GfxShadowType>() == GfxShadowType::PSSM)
     {
         Ogre::PSSMShadowCameraSetup* pssmSetup = static_cast<Ogre::PSSMShadowCameraSetup*>(PSSM_Shadows.mPSSMSetup.get());
-        matProfile->setReceiveDynamicShadowsDepth(true);
         matProfile->setReceiveDynamicShadowsLowLod(false);
         matProfile->setReceiveDynamicShadowsEnabled(true);
         matProfile->setReceiveDynamicShadowsPSSM(pssmSetup);

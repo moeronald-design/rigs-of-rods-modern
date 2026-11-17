@@ -21,6 +21,9 @@
 
 #include "GfxScene.h"
 
+#include <RTShaderSystem/OgreRTShaderSystem.h>
+#include <Bites/OgreSGTechniqueResolverListener.h>
+
 #include "AppContext.h"
 #include "Actor.h"
 #include "ActorManager.h"
@@ -86,6 +89,17 @@ void GfxScene::Init()
 {
     ROR_ASSERT(!m_scene_manager);
     m_scene_manager = App::GetAppContext()->GetOgreRoot()->createSceneManager();
+
+    // OGRE 14: terrain materials (TerrainMaterialGeneratorA) are built by the RTShader System.
+    // TODO(runtime-test): verify the RTSS scheme on the main viewport does not change non-terrain materials.
+    if (Ogre::RTShader::ShaderGenerator::initialize())
+    {
+        Ogre::RTShader::ShaderGenerator* shadergen = Ogre::RTShader::ShaderGenerator::getSingletonPtr();
+        shadergen->addSceneManager(m_scene_manager);
+        Ogre::MaterialManager::getSingleton().addListener(new OgreBites::SGTechniqueResolverListener(shadergen));
+        App::GetAppContext()->GetViewport()->setMaterialScheme(Ogre::RTShader::ShaderGenerator::DEFAULT_SCHEME_NAME);
+    }
+
     m_gfx_freebeams_grouping_node = m_scene_manager->getRootSceneNode()->createChildSceneNode("FreeBeam Visuals");
 
     m_skidmark_conf.LoadDefaultSkidmarkDefs();

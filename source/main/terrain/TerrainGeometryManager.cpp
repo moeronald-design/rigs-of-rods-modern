@@ -50,8 +50,7 @@ public:
     Terrn2CustomMaterial(Ogre::String materialName, bool addNormalmap, bool cloneMaterial) 
       : m_material_name(materialName), m_add_normal_map(addNormalmap), m_clone_material(cloneMaterial)
     {
-        mProfiles.push_back(OGRE_NEW Profile(this, CUSTOM_MAT_PROFILE_NAME, "Renders RoR terrn2 with custom material"));
-        this->setActiveProfile(CUSTOM_MAT_PROFILE_NAME);
+        // OGRE 14: no more profiles - the generator implements the interface directly.
     }
 
     void setMaterialByName(const Ogre::String materialName)
@@ -60,34 +59,24 @@ public:
         this->_markChanged();
     };
 
-    class Profile : public Ogre::TerrainMaterialGenerator::Profile
+    bool               isVertexCompressionSupported () const override { return false; }
+    void               setLightmapEnabled           (bool set) override {}
+    Ogre::MaterialPtr  generate                     (const Ogre::Terrain* terrain) override;
+    Ogre::uint8        getMaxLayers                 (const Ogre::Terrain* terrain) const override { return 0; };
+    void               updateParams                 (const Ogre::MaterialPtr& mat, const Ogre::Terrain* terrain) override {};
+    void               updateParamsForCompositeMap  (const Ogre::MaterialPtr& mat, const Ogre::Terrain* terrain) override {};
+
+    Ogre::MaterialPtr generateForCompositeMap(const Ogre::Terrain* terrain) override
     {
-    public:
-        Profile(Ogre::TerrainMaterialGenerator* parent, const Ogre::String& name, const Ogre::String& desc)
-        : Ogre::TerrainMaterialGenerator::Profile(parent, name, desc)
-        {
-        };
-        ~Profile() override {};
+        return terrain->_getCompositeMapMaterial();
+    };
 
-        bool               isVertexCompressionSupported () const { return false; }
-        void               setLightmapEnabled           (bool set) /*override*/ {} // OGRE 1.8 doesn't have this method
-        Ogre::MaterialPtr  generate                     (const Ogre::Terrain* terrain) override;
-        Ogre::uint8        getMaxLayers                 (const Ogre::Terrain* terrain) const override { return 0; };
-        void               updateParams                 (const Ogre::MaterialPtr& mat, const Ogre::Terrain* terrain) override {};
-        void               updateParamsForCompositeMap  (const Ogre::MaterialPtr& mat, const Ogre::Terrain* terrain) override {};
-
-        Ogre::MaterialPtr generateForCompositeMap(const Ogre::Terrain* terrain) override
-        {
-            return terrain->_getCompositeMapMaterial();
-        };
-
-        void requestOptions(Ogre::Terrain* terrain) override
-        {
-            terrain->_setMorphRequired(false);
-            terrain->_setNormalMapRequired(true); // enable global normal map
-            terrain->_setLightMapRequired(false);
-            terrain->_setCompositeMapRequired(false);
-        };
+    void requestOptions(Ogre::Terrain* terrain) override
+    {
+        terrain->_setMorphRequired(false);
+        terrain->_setNormalMapRequired(true); // enable global normal map
+        terrain->_setLightMapRequired(false);
+        terrain->_setCompositeMapRequired(false);
     };
 
 protected:
@@ -96,7 +85,7 @@ protected:
     bool m_add_normal_map;
 };
 
-Ogre::MaterialPtr Terrn2CustomMaterial::Profile::generate(const Ogre::Terrain* terrain)
+Ogre::MaterialPtr Terrn2CustomMaterial::generate(const Ogre::Terrain* terrain)
 {
     const Ogre::String& matName = terrain->getMaterialName();
 
@@ -104,7 +93,7 @@ Ogre::MaterialPtr Terrn2CustomMaterial::Profile::generate(const Ogre::Terrain* t
     if (mat) 
         Ogre::MaterialManager::getSingleton().remove(matName);
 
-    Terrn2CustomMaterial* parent = static_cast<Terrn2CustomMaterial*>(this->getParent());
+    Terrn2CustomMaterial* parent = this;
 
     // Set Ogre material 
     mat = Ogre::MaterialManager::getSingleton().getByName(parent->m_material_name);
@@ -480,8 +469,7 @@ void TerrainGeometryManager::configureTerrainDefaults()
                 matProfile->setLayerSpecularMappingEnabled(m_spec->spec_map_enabled);
             }
             matProfile->setLayerParallaxMappingEnabled(m_spec->parallax_enabled);
-            matProfile->setGlobalColourMapEnabled(m_spec->global_colormap_enabled);
-            matProfile->setReceiveDynamicShadowsDepth(m_spec->recv_dyn_shadows_depth);
+            // OGRE 14: global colour map and "dynamic shadows depth" options no longer exist (m_spec->global_colormap_enabled, m_spec->recv_dyn_shadows_depth are ignored)
 
             terrainManager->getShadowManager()->updateTerrainMaterial(matProfile);
         }
