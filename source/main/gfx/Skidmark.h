@@ -24,6 +24,7 @@
 
 #include <OgreMaterial.h>
 #include <OgreString.h>
+#include <queue>
 #include <OgreVector2.h>
 #include <OgreVector3.h>
 

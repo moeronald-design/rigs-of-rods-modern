@@ -19,6 +19,7 @@
     along with Rigs of Rods. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "Ogre14Compat.h"
 #include "GfxWater.h"
 
 #include "Actor.h"
@@ -404,35 +405,35 @@ void GfxWater::UpdateWater()
     {
         if (m_frame_counter % 2 == 1 || m_waterplane_force_update_pos)
         {
-            m_reflect_cam->setOrientation(camera_rot);
-            m_reflect_cam->setPosition(camera_pos);
+            RoR::OgreCompat::setOrientation(m_reflect_cam, camera_rot);
+            RoR::OgreCompat::setPosition(m_reflect_cam, camera_pos);
             m_reflect_cam->setFOVy(camera_fov);
             m_reflect_rtt_target->update();
         }
         if (m_frame_counter % 2 == 0 || m_waterplane_force_update_pos)
         {
-            m_refract_cam->setOrientation(camera_rot);
-            m_refract_cam->setPosition(camera_pos);
+            RoR::OgreCompat::setOrientation(m_refract_cam, camera_rot);
+            RoR::OgreCompat::setPosition(m_refract_cam, camera_pos);
             m_refract_cam->setFOVy(camera_fov);
             m_refract_rtt_target->update();
         }
     }
     else if (App::gfx_water_mode->getEnum<GfxWaterMode>() == GfxWaterMode::FULL_HQ)
     {
-        m_reflect_cam->setOrientation(camera_rot);
-        m_reflect_cam->setPosition(camera_pos);
+        RoR::OgreCompat::setOrientation(m_reflect_cam, camera_rot);
+        RoR::OgreCompat::setPosition(m_reflect_cam, camera_pos);
         m_reflect_cam->setFOVy(camera_fov);
         m_reflect_rtt_target->update();
 
-        m_refract_cam->setOrientation(camera_rot);
-        m_refract_cam->setPosition(camera_pos);
+        RoR::OgreCompat::setOrientation(m_refract_cam, camera_rot);
+        RoR::OgreCompat::setPosition(m_refract_cam, camera_pos);
         m_refract_cam->setFOVy(camera_fov);
         m_refract_rtt_target->update();
     }
     else if (App::gfx_water_mode->getEnum<GfxWaterMode>() == GfxWaterMode::REFLECT)
     {
-        m_reflect_cam->setOrientation(camera_rot);
-        m_reflect_cam->setPosition(camera_pos);
+        RoR::OgreCompat::setOrientation(m_reflect_cam, camera_rot);
+        RoR::OgreCompat::setPosition(m_reflect_cam, camera_pos);
         m_reflect_cam->setFOVy(camera_fov);
         m_reflect_rtt_target->update();
     }

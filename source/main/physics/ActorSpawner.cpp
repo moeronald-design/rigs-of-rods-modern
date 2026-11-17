@@ -7393,7 +7393,7 @@ Ogre::ParticleSystem* ActorSpawner::CreateParticleSystem(std::string const & nam
     params["templateName"] = template_name;
 
     Ogre::MovableObject* obj = App::GetGfxScene()->GetSceneManager()->createMovableObject(
-       name, Ogre::ParticleSystemFactory::FACTORY_TYPE_NAME, &params);
+       name, "ParticleSystem" /* OGRE 14: factory class no longer public */, &params);
     Ogre::ParticleSystem* psys = static_cast<Ogre::ParticleSystem*>(obj);
     psys->setVisibilityFlags(DEPTHMAP_DISABLED); // disable particles in depthmap
 

@@ -25,6 +25,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #ifndef _Hydrax_GodRaysManager_H_
 #define _Hydrax_GodRaysManager_H_
 
+#include <queue>
 #include "Prerequisites.h"
 #include "Perlin.h"
 

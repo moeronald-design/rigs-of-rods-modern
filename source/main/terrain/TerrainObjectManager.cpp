@@ -19,6 +19,7 @@
     along with Rigs of Rods. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "Ogre14Compat.h"
 #include "TerrainObjectManager.h"
 
 #include "Actor.h"
@@ -932,8 +933,8 @@ bool TerrainObjectManager::LoadTerrainObject(const Ogre::String& name, const Ogr
         Light* spotLight = App::GetGfxScene()->GetSceneManager()->createLight();
 
         spotLight->setType(Light::LT_SPOTLIGHT);
-        spotLight->setPosition(spotl.pos);
-        spotLight->setDirection(spotl.dir);
+        RoR::OgreCompat::setPosition(spotLight, spotl.pos);
+        RoR::OgreCompat::setDirection(spotLight, spotl.dir);
         spotLight->setAttenuation(spotl.range, 1.0, 0.3, 0.0);
         spotLight->setDiffuseColour(spotl.color);
         spotLight->setSpecularColour(spotl.color);
@@ -957,8 +958,8 @@ bool TerrainObjectManager::LoadTerrainObject(const Ogre::String& name, const Ogr
         Light* pointlight = App::GetGfxScene()->GetSceneManager()->createLight();
 
         pointlight->setType(Light::LT_POINT);
-        pointlight->setPosition(plight.pos);
-        pointlight->setDirection(plight.dir);
+        RoR::OgreCompat::setPosition(pointlight, plight.pos);
+        RoR::OgreCompat::setDirection(pointlight, plight.dir);
         pointlight->setAttenuation(plight.range, 1.0, 0.3, 0.0);
         pointlight->setDiffuseColour(plight.color);
         pointlight->setSpecularColour(plight.color);

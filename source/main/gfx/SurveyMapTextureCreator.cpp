@@ -18,6 +18,7 @@
     along with Rigs of Rods. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "Ogre14Compat.h"
 #include "SurveyMapTextureCreator.h"
 
 #include "Actor.h"
@@ -69,8 +70,8 @@ bool SurveyMapTextureCreator::init(int res, int fsaa)
     mRttTex->setAutoUpdated(false);
 
     mCamera = App::GetGfxScene()->GetSceneManager()->createCamera("MapRttCam-" + TOSTRING(counter));
-    mCamera->setFixedYawAxis(false);
-    mCamera->setDirection(-Vector3::UNIT_Y);
+    RoR::OgreCompat::setFixedYawAxis(mCamera, false);
+    RoR::OgreCompat::setDirection(mCamera, -Vector3::UNIT_Y);
     mCamera->setProjectionType(PT_ORTHOGRAPHIC);
     mCamera->setNearClipDistance(1.0f);
     mCamera->setFarClipDistance(0);
@@ -90,7 +91,7 @@ void SurveyMapTextureCreator::update(Vector2 center, Vector2 size)
         return;
  
     mCamera->setOrthoWindow(size.x, size.y);
-    mCamera->setPosition(Vector3(center.x, mTerrainHeight, center.y));
+    RoR::OgreCompat::setPosition(mCamera, Vector3(center.x, mTerrainHeight, center.y));
 
     mRttTex->update();
 }
@@ -101,7 +102,7 @@ void SurveyMapTextureCreator::preRenderTargetUpdate(const RenderTargetEvent &evt
     if (water)
     {
         water->SetForcedCameraTransform(mCamera->getFOVy(),
-            mCamera->getPosition(), mCamera->getOrientation()); // FIXME: Legacy OGRE API! Use camera node instead!
+            RoR::OgreCompat::getPosition(mCamera), RoR::OgreCompat::getOrientation(mCamera)); // FIXME: Legacy OGRE API! Use camera node instead!
         water->UpdateWater();
         water->ClearForcedCameraTransform();
     }

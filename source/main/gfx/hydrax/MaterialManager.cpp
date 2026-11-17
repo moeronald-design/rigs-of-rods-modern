@@ -27,6 +27,7 @@ Contributors:
 --------------------------------------------------------------------------------
 */
 
+#include "Ogre14Compat.h"
 #include <OgreString.h>
 
 #include <MaterialManager.h>
@@ -3065,7 +3066,7 @@ namespace Hydrax
 		{
 			FP_Parameters->setNamedConstant("uSunColor", mHydrax->getSunColor());
 			FP_Parameters->setNamedConstant("uLightDirection",
-				(mHydrax->getMesh()->getObjectSpacePosition(mHydrax->getCamera()->getPosition()) -
+				(mHydrax->getMesh()->getObjectSpacePosition(RoR::OgreCompat::getPosition(mHydrax->getCamera())) -
 				 mHydrax->getMesh()->getObjectSpacePosition(mHydrax->getSunPosition()))
 			     .normalisedCopy());
 		    FP_Parameters->setNamedConstant("uIntensity", mHydrax->getGodRaysIntensity());
@@ -3764,7 +3765,7 @@ namespace Hydrax
 				setNamedConstant("uSunColor", mMaterialManager->mHydrax->getSunColor());
 
 			FP_Parameters->setNamedConstant("uLightDirection",
-				   (mMaterialManager->mHydrax->getMesh()->getObjectSpacePosition(mMaterialManager->mHydrax->getCamera()->getPosition()) -
+				   (mMaterialManager->mHydrax->getMesh()->getObjectSpacePosition(RoR::OgreCompat::getPosition(mMaterialManager->mHydrax->getCamera())) -
 				    mMaterialManager->mHydrax->getMesh()->getObjectSpacePosition(mMaterialManager->mHydrax->getSunPosition()))
 					.normalisedCopy());
 

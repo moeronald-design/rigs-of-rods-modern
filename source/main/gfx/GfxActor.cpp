@@ -19,6 +19,7 @@
     along with Rigs of Rods. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "Ogre14Compat.h"
 #include "GfxActor.h"
 
 #include "ApproxMath.h"
@@ -508,9 +509,9 @@ void RoR::GfxActor::UpdateVideoCameras(float dt)
             Ogre::Plane plane = Ogre::Plane(normal, center);
             Ogre::Vector3 project = plane.projectVector(App::GetCameraManager()->GetCameraNode()->getPosition() - center);
 
-            vidcam.vcam_ogre_camera->setPosition(center);
-            vidcam.vcam_ogre_camera->lookAt(App::GetCameraManager()->GetCameraNode()->getPosition() - 2.0f * project);
-            vidcam.vcam_ogre_camera->roll(roll);
+            RoR::OgreCompat::setPosition(vidcam.vcam_ogre_camera, center);
+            RoR::OgreCompat::lookAt(vidcam.vcam_ogre_camera, App::GetCameraManager()->GetCameraNode()->getPosition() - 2.0f * project);
+            RoR::OgreCompat::roll(vidcam.vcam_ogre_camera, roll);
             vidcam.vcam_ogre_camera->setNearClipDistance(1); // fixes Caelum sky rendered black on mirrors
 
             continue; // Done processing mirror prop.
@@ -541,14 +542,14 @@ void RoR::GfxActor::UpdateVideoCameras(float dt)
         // could this be done faster&better with a plane setFrustumExtents ?
         Ogre::Vector3 frustumUP = abs_pos_center - abs_pos_y;
         frustumUP.normalise();
-        vidcam.vcam_ogre_camera->setFixedYawAxis(true, frustumUP);
+        RoR::OgreCompat::setFixedYawAxis(vidcam.vcam_ogre_camera, true, frustumUP);
 
         if (vidcam.vcam_role == VCAM_ROLE_MIRROR || vidcam.vcam_role == VCAM_ROLE_MIRROR_NOFLIP)
         {
             //rotate the normal of the mirror by user rotation setting so it reflects correct
             normal = vidcam.vcam_rotation * normal;
             // merge camera direction and reflect it on our plane
-            vidcam.vcam_ogre_camera->setDirection((pos - App::GetCameraManager()->GetCameraNode()->getPosition()).reflect(normal));
+            RoR::OgreCompat::setDirection(vidcam.vcam_ogre_camera, (pos - App::GetCameraManager()->GetCameraNode()->getPosition()).reflect(normal));
         }
         else if (vidcam.vcam_role == VCAM_ROLE_VIDEOCAM)
         {
@@ -558,7 +559,7 @@ void RoR::GfxActor::UpdateVideoCameras(float dt)
             Ogre::Vector3 refy = abs_pos_center - abs_pos_y;
             refy.normalise();
             Ogre::Quaternion rot = Ogre::Quaternion(-refx, -refy, -normal);
-            vidcam.vcam_ogre_camera->setOrientation(rot * vidcam.vcam_rotation); // rotate the camera orientation towards the calculated cam direction plus user rotation
+            RoR::OgreCompat::setOrientation(vidcam.vcam_ogre_camera, rot * vidcam.vcam_rotation); // rotate the camera orientation towards the calculated cam direction plus user rotation
         }
         else if (vidcam.vcam_role == VCAM_ROLE_TRACKING_VIDEOCAM 
             || vidcam.vcam_role == VCAM_ROLE_TRACKING_MIRROR || vidcam.vcam_role == VCAM_ROLE_TRACKING_MIRROR_NOFLIP)
@@ -572,17 +573,17 @@ void RoR::GfxActor::UpdateVideoCameras(float dt)
             Ogre::Vector3 refy = refx.crossProduct(normal);
             refy.normalise();
             Ogre::Quaternion rot = Ogre::Quaternion(-refx, -refy, -normal);
-            vidcam.vcam_ogre_camera->setOrientation(rot * vidcam.vcam_rotation); // rotate the camera orientation towards the calculated cam direction plus user rotation
+            RoR::OgreCompat::setOrientation(vidcam.vcam_ogre_camera, rot * vidcam.vcam_rotation); // rotate the camera orientation towards the calculated cam direction plus user rotation
         }
 
         if (vidcam.vcam_debug_node != nullptr)
         {
             vidcam.vcam_debug_node->setPosition(pos);
-            vidcam.vcam_debug_node->setOrientation(vidcam.vcam_ogre_camera->getOrientation());
+            vidcam.vcam_debug_node->setOrientation(RoR::OgreCompat::getOrientation(vidcam.vcam_ogre_camera));
         }
 
         // set the new position
-        vidcam.vcam_ogre_camera->setPosition(pos);
+        RoR::OgreCompat::setPosition(vidcam.vcam_ogre_camera, pos);
     }
 }
 
@@ -2154,11 +2155,11 @@ void RoR::GfxActor::UpdateBeaconFlare(Prop & prop, float dt, bool is_player_acto
         float beacon_rotation_angle = prop.pp_beacon_rot_angle[0]; // Updated at end of block
 
         // Transform
-        pp_beacon_light->setPosition(beacon_scene_node->getPosition() + beacon_orientation * Ogre::Vector3(0, 0, 0.12));
+        RoR::OgreCompat::setPosition(pp_beacon_light, beacon_scene_node->getPosition() + beacon_orientation * Ogre::Vector3(0, 0, 0.12));
         beacon_rotation_angle += dt * beacon_rotation_rate;//rotate baby!
-        pp_beacon_light->setDirection(beacon_orientation * Ogre::Vector3(cos(beacon_rotation_angle), sin(beacon_rotation_angle), 0));
+        RoR::OgreCompat::setDirection(pp_beacon_light, beacon_orientation * Ogre::Vector3(cos(beacon_rotation_angle), sin(beacon_rotation_angle), 0));
         //billboard
-        Ogre::Vector3 vdir = pp_beacon_light->getPosition() - App::GetCameraManager()->GetCameraNode()->getPosition(); // TODO: verify the position is already updated here ~ only_a_ptr, 06/2018
+        Ogre::Vector3 vdir = RoR::OgreCompat::getPosition(pp_beacon_light) - App::GetCameraManager()->GetCameraNode()->getPosition(); // TODO: verify the position is already updated here ~ only_a_ptr, 06/2018
         float vlen = vdir.length();
         if (vlen > 100.0)
         {
@@ -2167,8 +2168,8 @@ void RoR::GfxActor::UpdateBeaconFlare(Prop & prop, float dt, bool is_player_acto
         }
         //normalize
         vdir = vdir / vlen;
-        prop.pp_beacon_scene_node[0]->setPosition(pp_beacon_light->getPosition() - vdir * 0.1);
-        float amplitude = pp_beacon_light->getDirection().dotProduct(vdir);
+        prop.pp_beacon_scene_node[0]->setPosition(RoR::OgreCompat::getPosition(pp_beacon_light) - vdir * 0.1);
+        float amplitude = RoR::OgreCompat::getDirection(pp_beacon_light).dotProduct(vdir);
         if (amplitude > 0)
         {
             prop.pp_beacon_scene_node[0]->setVisible(true);
@@ -2192,19 +2193,19 @@ void RoR::GfxActor::UpdateBeaconFlare(Prop & prop, float dt, bool is_player_acto
             Quaternion orientation = prop.pp_scene_node->getOrientation();
             switch (k)
             {
-            case 0: prop.pp_beacon_light[k]->setPosition(prop.pp_scene_node->getPosition() + orientation * Vector3(-0.64, 0, 0.14));
+            case 0: RoR::OgreCompat::setPosition(prop.pp_beacon_light[k], prop.pp_scene_node->getPosition() + orientation * Vector3(-0.64, 0, 0.14));
                 break;
-            case 1: prop.pp_beacon_light[k]->setPosition(prop.pp_scene_node->getPosition() + orientation * Vector3(-0.32, 0, 0.14));
+            case 1: RoR::OgreCompat::setPosition(prop.pp_beacon_light[k], prop.pp_scene_node->getPosition() + orientation * Vector3(-0.32, 0, 0.14));
                 break;
-            case 2: prop.pp_beacon_light[k]->setPosition(prop.pp_scene_node->getPosition() + orientation * Vector3(+0.32, 0, 0.14));
+            case 2: RoR::OgreCompat::setPosition(prop.pp_beacon_light[k], prop.pp_scene_node->getPosition() + orientation * Vector3(+0.32, 0, 0.14));
                 break;
-            case 3: prop.pp_beacon_light[k]->setPosition(prop.pp_scene_node->getPosition() + orientation * Vector3(+0.64, 0, 0.14));
+            case 3: RoR::OgreCompat::setPosition(prop.pp_beacon_light[k], prop.pp_scene_node->getPosition() + orientation * Vector3(+0.64, 0, 0.14));
                 break;
             }
             prop.pp_beacon_rot_angle[k] += dt * prop.pp_beacon_rot_rate[k];//rotate baby!
-            prop.pp_beacon_light[k]->setDirection(orientation * Vector3(cos(prop.pp_beacon_rot_angle[k]), sin(prop.pp_beacon_rot_angle[k]), 0));
+            RoR::OgreCompat::setDirection(prop.pp_beacon_light[k], orientation * Vector3(cos(prop.pp_beacon_rot_angle[k]), sin(prop.pp_beacon_rot_angle[k]), 0));
             //billboard
-            Vector3 vdir = prop.pp_beacon_light[k]->getPosition() - App::GetCameraManager()->GetCameraNode()->getPosition();
+            Vector3 vdir = RoR::OgreCompat::getPosition(prop.pp_beacon_light[k]) - App::GetCameraManager()->GetCameraNode()->getPosition();
             float vlen = vdir.length();
             if (vlen > 100.0)
             {
@@ -2213,8 +2214,8 @@ void RoR::GfxActor::UpdateBeaconFlare(Prop & prop, float dt, bool is_player_acto
             }
             //normalize
             vdir = vdir / vlen;
-            prop.pp_beacon_scene_node[k]->setPosition(prop.pp_beacon_light[k]->getPosition() - vdir * 0.2);
-            float amplitude = prop.pp_beacon_light[k]->getDirection().dotProduct(vdir);
+            prop.pp_beacon_scene_node[k]->setPosition(RoR::OgreCompat::getPosition(prop.pp_beacon_light[k]) - vdir * 0.2);
+            float amplitude = RoR::OgreCompat::getDirection(prop.pp_beacon_light[k]).dotProduct(vdir);
             if (amplitude > 0)
             {
                 prop.pp_beacon_scene_node[k]->setVisible(true);
@@ -2231,10 +2232,10 @@ void RoR::GfxActor::UpdateBeaconFlare(Prop & prop, float dt, bool is_player_acto
     {
         //update light
         Quaternion orientation = prop.pp_scene_node->getOrientation();
-        prop.pp_beacon_light[0]->setPosition(prop.pp_scene_node->getPosition() + orientation * Vector3(0, 0, 0.06));
+        RoR::OgreCompat::setPosition(prop.pp_beacon_light[0], prop.pp_scene_node->getPosition() + orientation * Vector3(0, 0, 0.06));
         prop.pp_beacon_rot_angle[0] += dt * prop.pp_beacon_rot_rate[0];//rotate baby!
         //billboard
-        Vector3 vdir = prop.pp_beacon_light[0]->getPosition() - App::GetCameraManager()->GetCameraNode()->getPosition();
+        Vector3 vdir = RoR::OgreCompat::getPosition(prop.pp_beacon_light[0]) - App::GetCameraManager()->GetCameraNode()->getPosition();
         float vlen = vdir.length();
         if (vlen > 100.0)
         {
@@ -2243,7 +2244,7 @@ void RoR::GfxActor::UpdateBeaconFlare(Prop & prop, float dt, bool is_player_acto
         }
         //normalize
         vdir = vdir / vlen;
-        prop.pp_beacon_scene_node[0]->setPosition(prop.pp_beacon_light[0]->getPosition() - vdir * 0.1);
+        prop.pp_beacon_scene_node[0]->setPosition(RoR::OgreCompat::getPosition(prop.pp_beacon_light[0]) - vdir * 0.1);
         bool visible = false;
         if (prop.pp_beacon_rot_angle[0] > 1.0)
         {
@@ -2272,7 +2273,7 @@ void RoR::GfxActor::UpdateBeaconFlare(Prop & prop, float dt, bool is_player_acto
     else if (prop.pp_beacon_type == 'w') // Avionic navigation lights (white rotating beacon)
     {
         Vector3 mposition = nodes[prop.pp_node_ref].AbsPosition + prop.pp_offset.x * (nodes[prop.pp_node_x].AbsPosition - nodes[prop.pp_node_ref].AbsPosition) + prop.pp_offset.y * (nodes[prop.pp_node_y].AbsPosition - nodes[prop.pp_node_ref].AbsPosition);
-        prop.pp_beacon_light[0]->setPosition(mposition);
+        RoR::OgreCompat::setPosition(prop.pp_beacon_light[0], mposition);
         prop.pp_beacon_rot_angle[0] += dt * prop.pp_beacon_rot_rate[0];//rotate baby!
         //billboard
         Vector3 vdir = mposition - App::GetCameraManager()->GetCameraNode()->getPosition();
@@ -3310,9 +3311,9 @@ void RoR::GfxActor::UpdateFlares(float dt, bool is_player)
         }
         if (flare.light)
         {
-            flare.light->setPosition(mposition - 0.2 * amplitude * normal);
+            RoR::OgreCompat::setPosition(flare.light, mposition - 0.2 * amplitude * normal);
             // point the real light towards the ground a bit
-            flare.light->setDirection(-normal - Ogre::Vector3(0, 0.2, 0));
+            RoR::OgreCompat::setDirection(flare.light, -normal - Ogre::Vector3(0, 0.2, 0));
         }
         if (flare.intensity > 0)
         {
