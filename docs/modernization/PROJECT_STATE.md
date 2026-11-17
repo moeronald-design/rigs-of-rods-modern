@@ -332,6 +332,19 @@ First OGRE 14 compile (done on Linux GCC as a quick probe; errors are API issues
   Left for round 2+: gfx/particle/* (OgreShaderParticleRenderer, FireExtinguisherAffector, ExtinguishableFireAffectorFactory, OgreParticleCustomParam), scripting/bindings OGRE bindings (Light/Camera AngelScript methods now missing; needs wrappers via compat funcs), terrain/OgreTerrainPSSMMaterialGenerator + TerrainGeometryManager, ColoredTextAreaOverlayElement, GUI_RepositorySelector (WorkQueue), Hydrax mMaterials errors, physics/flex FlexBody, ImpostorPage.h.
 - Fix order: (a) includes + RENDER_QUEUE_9 + string_view (mechanical), (b) Camera/Light via a helper that uses the parent SceneNode, (c) TextArea overlay, particle renderer, WorkQueue, ImGui overlay (small rewrites), (d) Hydrax/SkyX/Caelum decision: port or replace.
 
+### 5k-ii. Rounds 2-4 results (Session 1k) - FIRST SUCCESSFUL WINDOWS BUILD
+- Round 1: 289 errors. Round 2 (e4113a2): 381 error lines, but mostly cascade from one file (particle renderer) + a stray brace I left in OgreAngelscriptWrappers.h. Round 3 (ed39b8a): 10 errors (FlexBody, ImpostorPage). **Round 4 (3485669, run 43997080618): GREEN. Compiles AND links bin\RoR.exe on Windows with OGRE 14.5.2.** (Not yet run - CI cannot launch the game; owner must test on a Windows PC.)
+- Decisions/changes in rounds 2-4 (all need runtime testing):
+  - Terrain: custom 1750-line PSSM generator removed. `terrain/OgreTerrainPSSMMaterialGenerator.h` is now an alias to Ogre `TerrainMaterialGeneratorA` (RTSS-based). Lost options: global colour map, "dynamic shadows depth" (settings ignored). `Terrn2CustomMaterial` ported to the generator interface directly (no Profile).
+  - RTSS: initialised in `GfxScene::Init()` (ShaderGenerator::initialize, SGTechniqueResolverListener, viewport scheme = default RTSS scheme). Risk: may affect non-terrain materials.
+  - AngelScript bindings: Light position/direction via Ogre14Compat wrappers; isNaN (vector2/3, quaternion) and SceneNode::hideBoundingBox NOT registered; OverlayManager templates stubbed (getTemplates returns empty, isTemplate false); const fixes for SceneNode methods.
+  - Particles: custom ShaderParticleRenderer + OgreParticleCustomParam REMOVED from build and from ContentManager registration. Particle scripts that use renderer "shader" will not work until rewritten or replaced with built-in billboards. Fire/extinguisher affectors ported (std::vector instead of VectorIterator, getNumParticles/getParticle).
+  - ColoredTextAreaOverlayElement: per-character colouring disabled (private members in OGRE 14); text shows plain.
+  - GUI_RepositorySelector: WorkQueue request/handler replaced with `getWorkQueue()->addTask(lambda)`.
+  - FlexBody: reorganiseBuffers now takes only the declaration. Colour vertex element ARGB/ABGR unified (ABGR layout) in BatchedGeometry/PropertyMaps. ImpostorPage auto_ptr -> unique_ptr.
+- Known leftovers / TODO: lazily created SceneNodes from Ogre14Compat leak; Caelum and discord_rpc not built; MeshLodGenerator component dropped; Hydrax/SkyX/PagedGeometry kept as-is; verify water, sky, shadows, GUI, vehicles at runtime.
+- Next: (1) make CI upload RoR.exe + resources as a downloadable zip so the owner can test on Windows; (2) fix runtime crashes found by owner; (3) restore particles; (4) then PBR/lighting pass.
+
 ---
 
 ## 6. Open questions for the owner
@@ -375,4 +388,4 @@ First OGRE 14 compile (done on Linux GCC as a quick probe; errors are API issues
 
 ## 9. Handoff prompt (paste into the next chat)
 
-> Continuing the Rigs of Rods modernization project. Read the attached RoR_Modernization_Project_State.md first. Summary: RoR is GPL-3.0, C++/AngelScript, renders with OGRE (not a game engine), and uses its own in-house node/beam soft-body physics, so the renderer can be changed without touching physics. Current plan is Option A (upgrade OGRE + PBR/lighting/assets) with a feasibility spike on OGRE-Next or a Godot-based renderer. Next task: [fill in — e.g. size the Ogre:: porting surface from the repo / draft the visual benchmark / spec the physics-to-renderer interface]. Update the state file at the end of the session.
+> Continuing the Rigs of Rods modernization project (standalone Windows-only fork: github.com/moeronald-design/rigs-of-rods-modern). Read docs/modernization/PROJECT_STATE.md in the repo (or the attached RoR_Modernization_Project_State.md) first, especially sections 5i-5k. Status: branch `modern/ogre14-port` compiles and links on Windows against OGRE 14.5.2 (run 43997080618, green); baseline unmodified build is run 43968942511. Not yet run on hardware. Next: have CI package RoR.exe + resources as a downloadable artifact, owner tests, fix runtime issues, restore particles, then PBR/lighting. Owner is on mobile, delegates technical decisions, wants everything recorded in the state file and a clean Actions tab (keep only newest run + baseline). Update the state file at every milestone.
