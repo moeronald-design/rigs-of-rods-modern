@@ -151,6 +151,11 @@ jobs:
           for d in "$OGRE_PREFIX/bin" "$MYGUI_PREFIX/bin" "$SOCKETW_PREFIX/bin" "C:/vcpkg/installed/$VCPKG_TRIPLET/bin" "build/bin"; do
             if [ -d "$d" ]; then cp -n "$d"/*.dll redist/ 2>/dev/null || true; fi
           done
+          # MyGUI (and others) install DLLs in subfolders like bin/Release: copy recursively
+          find C:/deps -iname '*.dll' -exec cp -n {} redist/ \; 2>/dev/null || true
+          for req in MyGUIEngine.dll OgreMain.dll RoR.exe; do
+            if [ ! -f "redist/$req" ]; then echo "MISSING in package: $req"; find C:/deps build -iname "${req%.*}*" | head; exit 1; fi
+          done
           ls redist | head -80
           powershell -Command "Compress-Archive -Path redist/* -DestinationPath RoR-ogre14-windows.zip"
           ls -la RoR-ogre14-windows.zip
